@@ -13,16 +13,25 @@ public class Player extends Entity {
 	GamePanel gp;
 	KeyHandler keyH;
 	
+	public final int SCREEN_X;
+	public final int SCREEN_Y;
+	
 	public Player(GamePanel gp, KeyHandler keyH) {
 		this.gp = gp;
 		this.keyH = keyH;
+		
+		// sets player to middle of the screen (player stationary, map moves)
+		SCREEN_X = gp.SCREEN_WIDTH/2 - (gp.TILE_SIZE/2);
+		SCREEN_Y = gp.SCREEN_HEIGHT/2 - (gp.TILE_SIZE/2);
+		
 		setDefaultValues();
 		getPlayerImage();
 	}
 	
 	public void setDefaultValues() {
-		x = 100;
-		y = 100;
+		// starting position based on tile position on map
+		worldX = gp.TILE_SIZE * 23;
+		worldY = gp.TILE_SIZE * 21;
 		speed = 4;
 		direction = "down";
 	}
@@ -48,19 +57,19 @@ public class Player extends Entity {
 			
 			if(keyH.upPressed == true) {
 				direction = "up";
-				y -= speed;
+				worldY -= speed;
 			}
 			else if(keyH.downPressed == true) {
 				direction = "down";
-				y += speed;
+				worldY += speed;
 			}
 			else if(keyH.leftPressed == true) {
 				direction = "left";
-				x -= speed;
+				worldX -= speed;
 			}
 			else if(keyH.rightPressed == true) {
 				direction = "right";
-				x += speed;
+				worldX += speed;
 			}
 			
 			// Player image changes every 12 frames, only when a key is pressed
@@ -113,6 +122,6 @@ public class Player extends Entity {
 			}
 			break;
 		}
-		g2.drawImage(image, x, y, gp.TILE_SIZE, gp.TILE_SIZE, null);
+		g2.drawImage(image, SCREEN_X, SCREEN_Y, gp.TILE_SIZE, gp.TILE_SIZE, null);
 	}
 }
