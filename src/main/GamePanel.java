@@ -8,6 +8,7 @@ import java.awt.Graphics2D;
 import javax.swing.JPanel;
 
 import entity.Player;
+import object.SuperObject;
 import tile.TileManager;
 
 public class GamePanel extends JPanel implements Runnable {
@@ -25,18 +26,23 @@ public class GamePanel extends JPanel implements Runnable {
 	// World Settings
 	public final int MAX_WORLD_COL = 50;
 	public final int MAX_WORLD_ROW = 50;
-	public final int WORLD_WIDTH = TILE_SIZE * MAX_WORLD_COL;
-	public final int WORLD_HEIGHT = TILE_SIZE * MAX_WORLD_ROW;
+	public final int WORLD_WIDTH = TILE_SIZE * MAX_WORLD_COL; // can delete if we want
+	public final int WORLD_HEIGHT = TILE_SIZE * MAX_WORLD_ROW; // can delete if we want
 	
 	// FPS
 	int FPS = 60;
 	
+	// System
 	TileManager tileM = new TileManager(this);
 	KeyHandler keyH = new KeyHandler();
+	Sound sound = new Sound();	
+	public CollisionChecker collisionChecker = new CollisionChecker(this);
+	public AssetSetter assetSetter = new AssetSetter(this);
 	Thread gameThread;
 	
-	// Player
+	// Entity and Object
 	public Player player = new Player(this, keyH);
+	public SuperObject obj[] = new SuperObject[10]; // can increase if we need to load more objects, kept low for performance	
 	
 	public GamePanel() {
 		this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
@@ -44,6 +50,11 @@ public class GamePanel extends JPanel implements Runnable {
 		this.setDoubleBuffered(true);
 		this.addKeyListener(keyH);
 		this.setFocusable(true);
+	}
+	
+	public void setupGame() {
+		assetSetter.setObject();
+		playMusic(0);
 	}
 	
 	public void startGameThread() {
@@ -80,10 +91,34 @@ public class GamePanel extends JPanel implements Runnable {
 		Graphics2D g2 = (Graphics2D)g;
 		
 		// Layered, top layer drawn last
+		// Tile
 		tileM.draw(g2);
+		
+		// Object
+		for(int i = 0; i < obj.length; i++) {
+			if(obj[i] != null) {
+				obj[i].draw(g2, this);
+			}
+		}
+		
+		// Player
 		player.draw(g2);
 		
 		g2.dispose();
 	}
 
+	public void playMusic(int i) {
+		sound.setFile(i);
+		sound.play();
+		sound.loop();
+	}
+	
+	public void stopMusic() {
+		sound.stop();
+	}
+	
+	public void playSFX(int i) {
+		sound.setFile(i);
+		sound.play();
+	}
 }

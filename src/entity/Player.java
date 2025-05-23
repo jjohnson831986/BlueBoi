@@ -1,6 +1,7 @@
 package entity;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -16,6 +17,8 @@ public class Player extends Entity {
 	public final int SCREEN_X;
 	public final int SCREEN_Y;
 	
+	int hasKey = 0;
+	
 	public Player(GamePanel gp, KeyHandler keyH) {
 		this.gp = gp;
 		this.keyH = keyH;
@@ -23,6 +26,11 @@ public class Player extends Entity {
 		// sets player to middle of the screen (player stationary, map moves)
 		SCREEN_X = gp.SCREEN_WIDTH/2 - (gp.TILE_SIZE/2);
 		SCREEN_Y = gp.SCREEN_HEIGHT/2 - (gp.TILE_SIZE/2);
+		
+		// Collision area
+		solidArea = new Rectangle(12,20,20,20); // original sizes (8,16,32,32) (48x48)
+		solidAreaDefaultX = solidArea.x;
+		solidAreaDefaultY = solidArea.y;
 		
 		setDefaultValues();
 		getPlayerImage();
@@ -57,19 +65,33 @@ public class Player extends Entity {
 			
 			if(keyH.upPressed == true) {
 				direction = "up";
-				worldY -= speed;
 			}
 			else if(keyH.downPressed == true) {
 				direction = "down";
-				worldY += speed;
 			}
 			else if(keyH.leftPressed == true) {
 				direction = "left";
-				worldX -= speed;
 			}
 			else if(keyH.rightPressed == true) {
 				direction = "right";
-				worldX += speed;
+			}
+			
+			// Check tile collision
+			collisionOn = false;
+			gp.collisionChecker.checkTile(this);
+			
+			// Check object collision
+			int objIndex = gp.collisionChecker.checkObject(this, true);
+			pickUpObject(objIndex);
+			
+			// If collision is false, player can move
+			if(collisionOn == false) {
+				switch(direction) {
+				case "up": worldY -= speed;	break;
+				case "down": worldY += speed; break;
+				case "left": worldX -= speed; break;
+				case "right": worldX += speed; break;
+				}
 			}
 			
 			// Player image changes every 12 frames, only when a key is pressed
@@ -84,6 +106,32 @@ public class Player extends Entity {
 				spriteCounter =0;
 			}
 		}		
+	}
+	
+	public void pickUpObject(int index) {
+		if(index != 999) {
+			String objectName = gp.obj[index].name;
+			
+			switch(objectName) {
+			case "Key":
+				gp.playSFX(1);
+				hasKey++;
+				gp.obj[index] = null;
+				break;
+			case "Door":
+				if(hasKey > 0) {
+					gp.playSFX(3);
+					gp.obj[index] = null;
+					hasKey--;
+				}
+				break;
+			case "Boots":
+				gp.playSFX(2);
+				speed += 2;
+				gp.obj[index] = null;
+				break;
+			}
+		}
 	}
 	
 	public void draw(Graphics2D g2) {
