@@ -1,5 +1,6 @@
 package entity;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -17,7 +18,9 @@ public class Player extends Entity {
 	public final int SCREEN_X;
 	public final int SCREEN_Y;
 	
-	int hasKey = 0;
+	public int hasKey = 0;
+	
+	int standCounter = 0;
 	
 	public Player(GamePanel gp, KeyHandler keyH) {
 		this.gp = gp;
@@ -105,7 +108,15 @@ public class Player extends Entity {
 				}
 				spriteCounter =0;
 			}
-		}		
+		}
+		else {
+			// Update sprite to "Natural" position if no movement key pressed
+			standCounter++;
+			if(standCounter == 20) { // 20 frame timed buffer for updating sprite
+				spriteNumber = 1;
+				standCounter = 0;
+			}
+		}
 	}
 	
 	public void pickUpObject(int index) {
@@ -117,18 +128,29 @@ public class Player extends Entity {
 				gp.playSFX(1);
 				hasKey++;
 				gp.obj[index] = null;
+				gp.ui.showMessage("You got a key!");
 				break;
 			case "Door":
 				if(hasKey > 0) {
 					gp.playSFX(3);
 					gp.obj[index] = null;
 					hasKey--;
+					gp.ui.showMessage("You opened the door!");
+				}
+				else {
+					gp.ui.showMessage("You need a key.");
 				}
 				break;
 			case "Boots":
 				gp.playSFX(2);
 				speed += 2;
 				gp.obj[index] = null;
+				gp.ui.showMessage("Speed Up!");
+				break;
+			case "Chest":
+				gp.ui.gameFinished = true;
+				gp.stopMusic();
+				gp.playSFX(4);
 				break;
 			}
 		}
@@ -171,5 +193,8 @@ public class Player extends Entity {
 			break;
 		}
 		g2.drawImage(image, SCREEN_X, SCREEN_Y, gp.TILE_SIZE, gp.TILE_SIZE, null);
+		// Color solidArea to check collision area of character
+		//g2.setColor(Color.red);
+		//g2.drawRect(SCREEN_X + solidArea.x, SCREEN_Y + solidArea.y, solidArea.width, solidArea.height);
 	}
 }
